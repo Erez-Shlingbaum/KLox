@@ -27,7 +27,7 @@ cd build/libs
 java -jar KLox-1.0.jar
 ```
 
-## Try it using repl.it
+## Try it using repl.it (Ignore the following HTMl, please go to https://erez-shlingbaum.github.io/KLox/)
 <iframe height="400px" width="100%" src="https://repl.it/@ErezShlingbaum/KLox?lite=true" scrolling="no" frameborder="no" allowtransparency="true" allowfullscreen="true" sandbox="allow-forms allow-pointer-lock allow-popups allow-same-origin allow-scripts allow-modals"></iframe>
 
 ## License
