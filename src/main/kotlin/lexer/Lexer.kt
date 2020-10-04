@@ -1,7 +1,7 @@
 package lexer
 
 enum class TokenType {
-    // Single-character tokens
+    // Operators, etc.
     OPEN_PAREN, CLOSE_PAREN, OPEN_BRACE, CLOSE_BRACE,
     COMMA, DOT, MINUS, PLUS, SEMICOLON, SLASH, STAR,
     PERCENT, DOUBLE_STAR,
@@ -65,6 +65,7 @@ class Lexer(private val source: String, private val reportError: (line: Int, msg
             "true" to TokenType.TRUE,
             "var" to TokenType.VAR,
             "while" to TokenType.WHILE,
+            "in" to TokenType.IN,
         )
     }
 
@@ -94,11 +95,22 @@ class Lexer(private val source: String, private val reportError: (line: Int, msg
             '-' -> addToken(TokenType.MINUS)
             '+' -> addToken(TokenType.PLUS)
             ';' -> addToken(TokenType.SEMICOLON)
-            '*' -> addToken(TokenType.STAR)
+            '%' -> addToken(TokenType.PERCENT)
+            '~' -> addToken(TokenType.BIT_NOT)
+            '*' -> addToken(if (match('*')) TokenType.DOUBLE_STAR else TokenType.STAR)
             '!' -> addToken(if (match('=')) TokenType.BANG_EQUAL else TokenType.BANG)
+            '^' -> addToken(if (match('=')) TokenType.BIT_XOR_EQUAL else TokenType.BIT_XOR)
+            '&' -> addToken(if (match('=')) TokenType.BIT_AND_EQUAL else TokenType.BIT_AND)
+            '|' -> addToken(if (match('=')) TokenType.BIT_OR_EQUAL else TokenType.BIT_OR)
             '=' -> addToken(if (match('=')) TokenType.EQUAL_EQUAL else TokenType.EQUAL)
-            '<' -> addToken(if (match('=')) TokenType.LESS_EQUAL else TokenType.LESS)
-            '>' -> addToken(if (match('=')) TokenType.GREATER_EQUAL else TokenType.GREATER)
+            '<' -> when {
+                match('<') -> addToken(if (match('=')) TokenType.BIT_SHIFT_LEFT_EQUAL else TokenType.BIT_SHIFT_LEFT)
+                else -> addToken(if (match('=')) TokenType.LESS_EQUAL else TokenType.LESS)
+            }
+            '>' -> when {
+                match('>') -> addToken(if (match('=')) TokenType.BIT_SHIFT_RIGHT_EQUAL else TokenType.BIT_SHIFT_RIGHT)
+                else -> addToken(if (match('=')) TokenType.GREATER_EQUAL else TokenType.GREATER)
+            }
             '/' -> {
                 // Comment
                 if (match('/'))
