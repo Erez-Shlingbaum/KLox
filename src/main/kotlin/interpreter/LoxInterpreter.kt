@@ -12,7 +12,7 @@ import kotlin.reflect.KFunction1
 
 
 private fun checkNumberOperand(operator: Token, operand: Any?) {
-    if (operand !is Double || operand !is Int)
+    if (operand !is Double && operand !is Int)
         throw LoxRuntimeError(operator, "Operand must be a number.")
 }
 
@@ -146,7 +146,7 @@ class LoxInterpreter(val interpreterErrorReporter: KFunction1<LoxRuntimeError, U
             TokenType.DOUBLE_STAR -> {
                 checkNumberOperands(expr.operator, leftValue, rightValue)
                 when {
-                    leftValue is Double || rightValue is Double -> (leftValue as Number).toDouble()
+                    leftValue is Double || rightValue is Double || (rightValue as Int) < 0 -> (leftValue as Number).toDouble()
                         .pow((rightValue as Number).toDouble())
                     else -> ((leftValue as Int).toDouble()).pow((rightValue as Int).toDouble()).toInt()
                 }

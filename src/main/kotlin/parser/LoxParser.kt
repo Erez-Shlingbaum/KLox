@@ -342,18 +342,8 @@ class LoxParser(private val tokens: List<Token>, private val reportError: (token
     }
 
     private fun parseMultiplication(): Expression {
-        var expr: Expression = parsePower()
-        while (match(TokenType.SLASH, TokenType.STAR)) {
-            val operator = previous()
-            val rightExpr = parsePower()
-            expr = BinaryExpression(expr, operator, rightExpr)
-        }
-        return expr
-    }
-
-    private fun parsePower(): Expression {
         var expr: Expression = parseUnary()
-        while (match(TokenType.DOUBLE_STAR)) {
+        while (match(TokenType.SLASH, TokenType.STAR)) {
             val operator = previous()
             val rightExpr = parseUnary()
             expr = BinaryExpression(expr, operator, rightExpr)
@@ -367,7 +357,17 @@ class LoxParser(private val tokens: List<Token>, private val reportError: (token
             val rightExpr = parseUnary()
             return UnaryExpression(operator, rightExpr)
         }
-        return parseCall()
+        return parsePower()
+    }
+
+    private fun parsePower(): Expression {
+        var expr: Expression = parseCall()
+        while (match(TokenType.DOUBLE_STAR)) {
+            val operator = previous()
+            val rightExpr = parseUnary()
+            expr = BinaryExpression(expr, operator, rightExpr)
+        }
+        return expr
     }
 
     private fun parseCall(): Expression {
