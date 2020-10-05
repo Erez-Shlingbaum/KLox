@@ -22,14 +22,11 @@ fun isTruthy(value: Any?): Boolean {
 fun stringify(value: Any?): String {
     if (value == null)
         return "nil"
-
-    when (value) {
-        is Double -> {
-            if (value % 1.0 == 0.0)
-                return value.toInt().toString() // To print without trailing .0
-            return value.toBigDecimal().toPlainString() // To print without scientific notation
-        }
-        else -> return value.toString()
+    // To print without scientific notation
+    return when (value) {
+        is Double -> value.toBigDecimal().toPlainString()
+        is Int -> value.toString()
+        else -> value.toString()
     }
 
 }

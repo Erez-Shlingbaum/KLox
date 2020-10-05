@@ -22,7 +22,7 @@ enum class TokenType {
 
 
     // Literals.
-    IDENTIFIER, STRING, NUMBER,
+    IDENTIFIER, STRING, NUMBER_FLOAT, NUMBER_INT,
 
     // Keywords.
     AND, CLASS, ELSE, FALSE, FUN, FOR, IF, NIL, OR,
@@ -159,7 +159,10 @@ class Lexer(private val source: String, private val reportError: (line: Int, msg
     private fun scanNumber() {
         while (isDigit(peek()))
             advance()
+
+        var isDouble = false
         if (peek() == '.' && isDigit(peekNext())) {
+            isDouble = true
             // Consume '.'
             advance()
 
@@ -167,11 +170,19 @@ class Lexer(private val source: String, private val reportError: (line: Int, msg
                 advance()
         }
         val substring = source.substring(start until current)
-        val num: Double = substring.toDoubleOrNull() ?: run {
-            reportError(line, "Could not convert literal number to double ==> $substring")
-            return
+
+        val num: Number = when {
+            isDouble -> substring.toDoubleOrNull() ?: run {
+                reportError(line, "Could not convert literal number to double ==> $substring")
+                return
+            }
+            else -> substring.toIntOrNull() ?: run {
+                reportError(line, "Could not convert literal number to int ==> $substring")
+                return
+            }
         }
-        addToken(TokenType.NUMBER, num)
+
+        addToken(if (num is Double) TokenType.NUMBER_FLOAT else TokenType.NUMBER_INT, num)
     }
 
     private fun peekNext(): Char {

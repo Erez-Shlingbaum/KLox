@@ -2,10 +2,7 @@ package interpreter
 
 import lexer.Token
 import lexer.TokenType
-import lox.LoxRuntimeError
-import lox.isEqual
-import lox.isTruthy
-import lox.stringify
+import lox.*
 import parser.*
 import java.util.*
 import kotlin.collections.ArrayList
@@ -14,12 +11,12 @@ import kotlin.reflect.KFunction1
 
 
 private fun checkNumberOperand(operator: Token, operand: Any?) {
-    if (operand !is Double)
+    if (operand !is Double || operand !is Int)
         throw LoxRuntimeError(operator, "Operand must be a number.")
 }
 
 private fun checkNumberOperands(operator: Token, leftOperand: Any?, rightOperand: Any?) {
-    if (leftOperand !is Double || rightOperand !is Double)
+    if (leftOperand !is Double && leftOperand !is Int || rightOperand !is Double && rightOperand !is Int)
         throw LoxRuntimeError(operator, "Operands must be a numbers.")
 }
 
@@ -27,13 +24,15 @@ private fun checkNumberOperands(operator: Token, leftOperand: Any?, rightOperand
 data class LoxReturnValue(val value: Any?) : RuntimeException()
 
 
-class LoxInterpreter(val runtimeErrorReporter: KFunction1<LoxRuntimeError, Unit>) : Interpreter<Any?> {
+class LoxInterpreter(val interpreterErrorReporter: KFunction1<LoxRuntimeError, Unit>) : Interpreter<Any?> {
     private val globalScope: Scope = Scope()
 
     // Define builtin functions
     init {
         globalScope.define("clock", LoxClockFunction)
         globalScope.define("readline", LoxReadLineFunction)
+        globalScope.define("int", LoxIntFunction)
+        globalScope.define("float", LoxFloatFunction)
         globalScope.define("str", LoxStrFunction)
         globalScope.define("type", LoxTypeFunction)
     }
@@ -59,7 +58,7 @@ class LoxInterpreter(val runtimeErrorReporter: KFunction1<LoxRuntimeError, Unit>
             for (statement in statements)
                 execute(statement)
         } catch (e: LoxRuntimeError) {
-            runtimeErrorReporter(e)
+            interpreterErrorReporter(e)
         }
     }
 
@@ -81,10 +80,14 @@ class LoxInterpreter(val runtimeErrorReporter: KFunction1<LoxRuntimeError, Unit>
         return when (expr.operator.type) {
             TokenType.MINUS -> {
                 checkNumberOperand(expr.operator, rightValue)
-                return -(rightValue as Double)
+                when (rightValue) {
+                    is Int -> -rightValue
+                    is Double -> -rightValue
+                    else -> error("checkNumberOperand should have thrown a runtime exception...")
+                }
             }
             TokenType.BANG -> !isTruthy(rightValue)
-            else -> null
+            else -> null // TODO i am pretty sure we need to error() here
         }
     }
 
@@ -95,28 +98,49 @@ class LoxInterpreter(val runtimeErrorReporter: KFunction1<LoxRuntimeError, Unit>
 
         return when (expr.operator.type) {
             // Arithmetic (and string concatenation)
-            TokenType.PLUS -> {
-                if (leftValue is Double && rightValue is Double)
-                    leftValue + rightValue
-                else if (leftValue is String && rightValue is String)
-                    leftValue + rightValue
-                else
-                    throw LoxRuntimeError(expr.operator,
-                        "Operator + not used correctly(can only add two numbers, or two strings): {$leftValue} + {$rightValue}")
+            TokenType.PLUS -> when {
+                // String concatenation
+                leftValue is String && rightValue is String -> leftValue + rightValue
+
+                // Ints / Doubles
+                else -> {
+                    // Make sure we are dealing with Ints / Doubles
+                    try {
+                        checkNumberOperands(expr.operator, leftValue, rightValue)
+                    } catch (e: LoxRuntimeError) {
+                        throw LoxRuntimeError(expr.operator,
+                            "Operator + not used correctly(can only add two numbers, or two strings): {$leftValue} + {$rightValue}")
+                    }
+                    when {
+                        // If one is of the operands is double, cast result to double
+                        leftValue is Double || rightValue is Double -> (leftValue as Number).toDouble() + (rightValue as Number).toDouble()
+                        // In any other case, both are int, so cast the result to int
+                        else -> leftValue as Int + rightValue as Int
+                    }
+                }
             }
             TokenType.MINUS -> {
                 checkNumberOperands(expr.operator, leftValue, rightValue)
-                leftValue as Double - rightValue as Double
+                when {
+                    leftValue is Double || rightValue is Double -> (leftValue as Number).toDouble() - (rightValue as Number).toDouble()
+                    else -> leftValue as Int - rightValue as Int
+                }
             }
             TokenType.STAR -> {
                 checkNumberOperands(expr.operator, leftValue, rightValue)
-                leftValue as Double * rightValue as Double
+                when {
+                    leftValue is Double || rightValue is Double -> (leftValue as Number).toDouble() * (rightValue as Number).toDouble()
+                    else -> leftValue as Int * rightValue as Int
+                }
             }
             TokenType.SLASH -> {
                 checkNumberOperands(expr.operator, leftValue, rightValue)
-                if (rightValue as Double == 0.0)
+                if (rightValue as Number == 0.0)
                     throw LoxRuntimeError(expr.operator, "Division by zero!")
-                leftValue as Double / rightValue
+                when {
+                    leftValue is Double || rightValue is Double -> (leftValue as Number).toDouble() / rightValue.toDouble()
+                    else -> leftValue as Int / rightValue as Int
+                }
             }
 
             // Logic expressions
@@ -125,19 +149,31 @@ class LoxInterpreter(val runtimeErrorReporter: KFunction1<LoxRuntimeError, Unit>
 
             TokenType.GREATER -> {
                 checkNumberOperands(expr.operator, leftValue, rightValue)
-                leftValue as Double > rightValue as Double
+                when {
+                    leftValue is Double || rightValue is Double -> (leftValue as Number).toDouble() > (rightValue as Number).toDouble()
+                    else -> leftValue as Int > rightValue as Int
+                }
             }
             TokenType.GREATER_EQUAL -> {
                 checkNumberOperands(expr.operator, leftValue, rightValue)
-                leftValue as Double >= rightValue as Double
+                when {
+                    leftValue is Double || rightValue is Double -> (leftValue as Number).toDouble() >= (rightValue as Number).toDouble()
+                    else -> leftValue as Int >= rightValue as Int
+                }
             }
             TokenType.LESS -> {
                 checkNumberOperands(expr.operator, leftValue, rightValue)
-                (leftValue as Double) < rightValue as Double
+                when {
+                    leftValue is Double || rightValue is Double -> (leftValue as Number).toDouble() < (rightValue as Number).toDouble()
+                    else -> (leftValue as Int) < rightValue as Int
+                }
             }
             TokenType.LESS_EQUAL -> {
                 checkNumberOperands(expr.operator, leftValue, rightValue)
-                leftValue as Double <= rightValue as Double
+                when {
+                    leftValue is Double || rightValue is Double -> (leftValue as Number).toDouble() <= (rightValue as Number).toDouble()
+                    else -> leftValue as Int <= rightValue as Int
+                }
             }
 
             else -> error("Something unexpected happened.")
@@ -264,7 +300,11 @@ class LoxInterpreter(val runtimeErrorReporter: KFunction1<LoxRuntimeError, Unit>
             throw LoxRuntimeError(expr.paren, "Can only call functions and classes.")
         if (arguments.size != callee.arity)
             throw LoxRuntimeError(expr.paren, "Expected ${callee.arity} arguments but got ${arguments.size} .")
-        return callee.call(this, arguments)
+        try {
+            return callee.call(this, arguments)
+        } catch (e: LoxCallError) {
+            throw LoxRuntimeError(expr.paren, e.msg)
+        }
     }
 
     override fun interpretWhileStmt(stmt: WhileStatement): Any? {

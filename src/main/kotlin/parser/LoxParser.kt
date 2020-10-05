@@ -396,7 +396,9 @@ class LoxParser(private val tokens: List<Token>, private val reportError: (token
             match(TokenType.FALSE) -> LiteralExpression(false)
             match(TokenType.TRUE) -> LiteralExpression(true)
             match(TokenType.NIL) -> LiteralExpression(null)
-            match(TokenType.NUMBER, TokenType.STRING) -> LiteralExpression(previous().literal)
+            match(TokenType.NUMBER_FLOAT,
+                TokenType.NUMBER_INT,
+                TokenType.STRING) -> LiteralExpression(previous().literal)
             match(TokenType.IDENTIFIER) -> VariableExpression(previous())
             match(TokenType.OPEN_PAREN) -> {
                 val expr = parseExpression()

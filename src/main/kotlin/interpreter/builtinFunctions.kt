@@ -1,5 +1,6 @@
 package interpreter
 
+import lox.LoxCallError
 import lox.stringify
 
 object LoxClockFunction : LoxCallable {
@@ -27,6 +28,43 @@ object LoxReadLineFunction : LoxCallable {
     }
 }
 
+object LoxIntFunction : LoxCallable {
+    override var arity: Int = 1
+
+    override fun call(interpreter: Interpreter<Any?>, arguments: List<Any?>): Any? {
+        val loxError = LoxCallError("Can not convert argument to integer")
+        return when (val arg = arguments[0]) {
+            is Int -> arg
+            is Double -> arg.toInt()
+            is String -> arg.toIntOrNull() ?: throw loxError
+            else -> throw loxError
+        }
+    }
+
+    override fun toString(): String {
+        return "<native function: int>"
+    }
+}
+
+object LoxFloatFunction : LoxCallable {
+    override var arity: Int = 1
+
+    override fun call(interpreter: Interpreter<Any?>, arguments: List<Any?>): Any? {
+        val loxError = LoxCallError("Can not convert argument to float")
+        return when (val arg = arguments[0]) {
+            is Int -> arg.toDouble()
+            is Double -> arg.toDouble()
+            is String -> arg.toDoubleOrNull() ?: throw loxError
+            else -> throw loxError
+        }
+    }
+
+    override fun toString(): String {
+        return "<native function: int>"
+    }
+}
+
+
 object LoxStrFunction : LoxCallable {
     override var arity: Int = 1
 
@@ -44,6 +82,7 @@ object LoxTypeFunction : LoxCallable {
 
     override fun call(interpreter: Interpreter<Any?>, arguments: List<Any?>): Any? {
         return when (val arg = arguments[0]) {
+            is Int -> "<int>"
             is Double -> "<float>"
             is String -> "<str>"
             is Boolean -> "<bool>"

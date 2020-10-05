@@ -16,15 +16,16 @@ class LexerTest : LoxTest() {
             Token(TokenType.MINUS, "-", null, 1),
             Token(TokenType.SLASH, "/", null, 1),
             Token(TokenType.STAR, "*", null, 1),
-            Token(TokenType.NUMBER, "123.321", 123.321, 1),
-            Token(TokenType.NUMBER, "999", 999.0, 2),
+            Token(TokenType.NUMBER_FLOAT, "123.321", 123.321, 1),
+            Token(TokenType.NUMBER_INT, "999", 999, 2),
             Token(TokenType.IDENTIFIER, "abc122", null, 2),
             Token(TokenType.STRING, "\"this is a string\nok?\"", "this is a string\nok?", 3),
             Token(TokenType.EOF, "", null, 3),
         )
 
+        val tokens = Lexer("+-/*123.321 \n 999 abc122 \"this is a string\nok?\"", this::reporter).scan()
         assertEquals(
-            Lexer("+-/*123.321 \n 999 abc122 \"this is a string\nok?\"", this::reporter).scan(),
+            tokens,
             expectedResult,
             "Lexer not working"
         )
