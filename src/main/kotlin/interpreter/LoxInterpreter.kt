@@ -148,7 +148,7 @@ class LoxInterpreter(val interpreterErrorReporter: KFunction1<LoxRuntimeError, U
                 when {
                     leftValue is Double || rightValue is Double || (rightValue as Int) < 0 -> (leftValue as Number).toDouble()
                         .pow((rightValue as Number).toDouble())
-                    else -> ((leftValue as Int).toDouble()).pow((rightValue as Int).toDouble()).toInt()
+                    else -> ((leftValue as Int).toDouble()).pow(rightValue.toDouble()).toInt()
                 }
             }
 
