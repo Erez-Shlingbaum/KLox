@@ -13,22 +13,26 @@ import kotlin.collections.set
 import kotlin.math.pow
 import kotlin.reflect.KFunction1
 
-
-private fun checkNumberOperand(operator: Token, operand: Any?) {
-    if (operand !is Double && operand !is Int)
-        throw LoxRuntimeError(operator, "Operand must be a number.")
+private fun checkIntsOperands(operator: Token, vararg operands: Any?) {
+    for (operand in operands)
+        if (operand !is Int)
+            throw LoxRuntimeError(operator, "Operands must be ints.")
 }
 
-private fun checkNumberOperands(operator: Token, leftOperand: Any?, rightOperand: Any?) {
-    if (leftOperand !is Double && leftOperand !is Int || rightOperand !is Double && rightOperand !is Int)
-        throw LoxRuntimeError(operator, "Operands must be a numbers.")
+private fun checkNumberOperands(operator: Token, vararg operands: Any?) {
+    for (operand in operands)
+        if (operand !is Double && operand !is Int)
+            throw LoxRuntimeError(operator, "Operands must be ints or floats.")
 }
+
 
 // This exception is used when returning from a function in lox
 data class LoxReturnValue(val value: Any?) : RuntimeException()
 
 
-class LoxInterpreter(val interpreterErrorReporter: KFunction1<LoxRuntimeError, Unit>) : Interpreter<Any?> {
+class LoxInterpreter(val interpreterErrorReporter: KFunction1<LoxRuntimeError, Unit>) :
+    Interpreter<Any?> {
+
     private val globalScope: Scope = Scope()
 
     // Define builtin functions
@@ -84,7 +88,7 @@ class LoxInterpreter(val interpreterErrorReporter: KFunction1<LoxRuntimeError, U
         val rightValue: Any? = eval(expr.rightExpr)
         return when (expr.operator.type) {
             TokenType.MINUS -> {
-                checkNumberOperand(expr.operator, rightValue)
+                checkNumberOperands(expr.operator, rightValue)
                 when (rightValue) {
                     is Int -> -rightValue
                     is Double -> -rightValue
@@ -113,8 +117,10 @@ class LoxInterpreter(val interpreterErrorReporter: KFunction1<LoxRuntimeError, U
                     try {
                         checkNumberOperands(expr.operator, leftValue, rightValue)
                     } catch (e: LoxRuntimeError) {
-                        throw LoxRuntimeError(expr.operator,
-                            "Operator + not used correctly(can only add two numbers, or two strings): {$leftValue} + {$rightValue}")
+                        throw LoxRuntimeError(
+                            expr.operator,
+                            "Operator + not used correctly(can only add two numbers, or two strings): {$leftValue} + {$rightValue}"
+                        )
                     }
                     when {
                         // If one is of the operands is double, cast result to double
@@ -155,7 +161,27 @@ class LoxInterpreter(val interpreterErrorReporter: KFunction1<LoxRuntimeError, U
                     else -> ((leftValue as Int).toDouble()).pow(rightValue.toDouble()).toInt()
                 }
             }
-
+            // Bitwise expressions
+            TokenType.BIT_OR -> {
+                checkIntsOperands(expr.operator, leftValue, rightValue)
+                (leftValue as Int) or (rightValue as Int)
+            }
+            TokenType.BIT_XOR -> {
+                checkIntsOperands(expr.operator, leftValue, rightValue)
+                (leftValue as Int) xor (rightValue as Int)
+            }
+            TokenType.BIT_AND -> {
+                checkIntsOperands(expr.operator, leftValue, rightValue)
+                (leftValue as Int) and (rightValue as Int)
+            }
+            TokenType.BIT_SHIFT_LEFT -> {
+                checkIntsOperands(expr.operator, leftValue, rightValue)
+                (leftValue as Int) shl (rightValue as Int)
+            }
+            TokenType.BIT_SHIFT_RIGHT -> {
+                checkIntsOperands(expr.operator, leftValue, rightValue)
+                (leftValue as Int) shr (rightValue as Int)
+            }
             // Logic expressions
             TokenType.EQUAL_EQUAL -> isEqual(leftValue, rightValue)
             TokenType.BANG_EQUAL -> !isEqual(leftValue, rightValue)
@@ -210,7 +236,6 @@ class LoxInterpreter(val interpreterErrorReporter: KFunction1<LoxRuntimeError, U
 
     override fun interpretExpressionStmt(stmt: ExpressionStatement): Any? {
         eval(stmt.expression)
-        // TODO if this is a repl session, println(stringify(eval(stmt.expression)))
         return Unit
     }
 
@@ -373,8 +398,10 @@ class LoxInterpreter(val interpreterErrorReporter: KFunction1<LoxRuntimeError, U
 
         val superclass = currentScope.getAt(depth, "super") as LoxClass
         val loxInstance = currentScope.getAt(depth - 1, "this") as LoxInstance
-        val method = superclass.findMethod(expr.method.lexeme) ?: throw LoxRuntimeError(expr.method,
-            "Undefined property '${expr.method.lexeme}'.")
+        val method = superclass.findMethod(expr.method.lexeme) ?: throw LoxRuntimeError(
+            expr.method,
+            "Undefined property '${expr.method.lexeme}'."
+        )
 
         return method.bind(loxInstance)
     }

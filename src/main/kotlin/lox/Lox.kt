@@ -7,17 +7,18 @@ import lexer.Token
 import lexer.TokenType
 import parser.LoxParser
 
-
 class Lox {
     private val interpreter = LoxInterpreter(this::interpreterRuntimeErrorReporter)
-
     var hadError = false
     var hadRuntimeError = false
+    var isReplSession = false
 
     private fun report(line: Int, msg: String, where: String = "") {
-        // Prints to stdout on purpose.
-        // TODO do this only if this a repl session. print to stderr if not
-        println("Error on line $line:$where ==> $msg")
+        val message = "Error on line $line:$where ==> $msg"
+        if (isReplSession)
+            println(message)
+        else
+            System.err.println(message)
         hadError = true
     }
 
@@ -51,6 +52,7 @@ class Lox {
 
     // Read, Eval, Print, Loop
     fun repl() {
+        isReplSession = true
         while (true) {
             print("> ")
             val code = readReplLine() ?: return
