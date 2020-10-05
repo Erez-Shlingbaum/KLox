@@ -4,7 +4,8 @@ KLox is an interpreter written by me in kotlin, for a programming language calle
 
 The interpreter is a tree-walk interpreter, and uses recursive decent parsing. In addition to what lox offers, I added the following features:
 escape characters in strings, such as \n, \\, \", etc. 
-readline, str functions.
+int, float types, power operator (e.g 2\*\*5).
+builtin functions: print(instead of a statement), readline, str, int, float, type.
 
 I also improved the lexer to support statements that end with '{'.
 I intend to add more features to this interprer in the future, i will update this readme appropriately.
@@ -33,7 +34,7 @@ fun makeCounter() {
   var i = 0;
   fun count() {
     i = i + 1;
-    print i;
+    print(i);
   }
 
   return count;
@@ -53,7 +54,7 @@ fun fib(n)
 }
 
 for (var i = 0; i < 30; i = i + 1)
-  print fib(i);
+  print(fib(i));
 ```
 ### Classes and inheritance
 ```lox
@@ -67,7 +68,7 @@ class UseNum{
 
 class UseNumPrint < UseNum{
     use(){
-        print this.num;
+        print(this.num);
     }  
 }
 
@@ -78,7 +79,7 @@ class UseNumMultiply < UseNum{
 }
 
 UseNumPrint(123).use();
-print UseNumMultiply(111).use(3);
+print(UseNumMultiply(111).use(3));
 ```
 
 ## Try it using repl.it (Please go to https://erez-shlingbaum.github.io/KLox/)
