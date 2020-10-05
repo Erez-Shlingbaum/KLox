@@ -7,6 +7,7 @@ import parser.*
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.collections.set
+import kotlin.math.pow
 import kotlin.reflect.KFunction1
 
 
@@ -140,6 +141,14 @@ class LoxInterpreter(val interpreterErrorReporter: KFunction1<LoxRuntimeError, U
                 when {
                     leftValue is Double || rightValue is Double -> (leftValue as Number).toDouble() / rightValue.toDouble()
                     else -> leftValue as Int / rightValue as Int
+                }
+            }
+            TokenType.DOUBLE_STAR -> {
+                checkNumberOperands(expr.operator, leftValue, rightValue)
+                when {
+                    leftValue is Double || rightValue is Double -> (leftValue as Number).toDouble()
+                        .pow((rightValue as Number).toDouble())
+                    else -> ((leftValue as Int).toDouble()).pow((rightValue as Int).toDouble()).toInt()
                 }
             }
 

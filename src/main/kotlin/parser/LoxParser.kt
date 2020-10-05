@@ -53,7 +53,8 @@ logic_and      → equality ( "and" equality )* ;
 equality       → comparison ( ( "!=" | "==" ) comparison )* ;
 comparison     → addition ( ( ">" | ">=" | "<" | "<=" ) addition )* ;
 addition       → multiplication ( ( "-" | "+" ) multiplication )* ;
-multiplication → unary ( ( "/" | "*" ) unary )* ;
+multiplication → power ( ( "/" | "*" ) power )* ;
+power → unary ( "**" unary )* ; // Note, this is left to right associative (in contrast to python, for example.)
 
 unary          → ( "!" | "-" ) unary | call ;
 call           → primary ( "(" arguments? ")" | "." IDENTIFIER )* ;
@@ -341,8 +342,18 @@ class LoxParser(private val tokens: List<Token>, private val reportError: (token
     }
 
     private fun parseMultiplication(): Expression {
-        var expr: Expression = parseUnary()
+        var expr: Expression = parsePower()
         while (match(TokenType.SLASH, TokenType.STAR)) {
+            val operator = previous()
+            val rightExpr = parsePower()
+            expr = BinaryExpression(expr, operator, rightExpr)
+        }
+        return expr
+    }
+
+    private fun parsePower(): Expression {
+        var expr: Expression = parseUnary()
+        while (match(TokenType.DOUBLE_STAR)) {
             val operator = previous()
             val rightExpr = parseUnary()
             expr = BinaryExpression(expr, operator, rightExpr)
