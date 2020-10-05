@@ -141,10 +141,6 @@ class Resolver(
         resolve(stmt.expression)
     }
 
-    override fun interpretPrintStmt(stmt: PrintStatement) {
-        resolve(stmt.expression)
-    }
-
     override fun interpretVarStmt(stmt: VarStatement) {
         declare(stmt.name)
         if (stmt.initializer != null)

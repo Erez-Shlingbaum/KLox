@@ -2,7 +2,10 @@ package interpreter
 
 import lexer.Token
 import lexer.TokenType
-import lox.*
+import lox.LoxCallError
+import lox.LoxRuntimeError
+import lox.isEqual
+import lox.isTruthy
 import parser.*
 import java.util.*
 import kotlin.collections.ArrayList
@@ -30,6 +33,7 @@ class LoxInterpreter(val interpreterErrorReporter: KFunction1<LoxRuntimeError, U
 
     // Define builtin functions
     init {
+        globalScope.define("print", LoxPrintFunction)
         globalScope.define("clock", LoxClockFunction)
         globalScope.define("readline", LoxReadLineFunction)
         globalScope.define("int", LoxIntFunction)
@@ -196,12 +200,6 @@ class LoxInterpreter(val interpreterErrorReporter: KFunction1<LoxRuntimeError, U
 
     override fun interpretLiteralExpr(expr: LiteralExpression): Any? {
         return expr.value
-    }
-
-    override fun interpretPrintStmt(stmt: PrintStatement): Any? {
-        val value = eval(stmt.expression)
-        println(stringify(value))
-        return Unit
     }
 
     override fun interpretFunStmt(stmt: FunStatement): Any? {

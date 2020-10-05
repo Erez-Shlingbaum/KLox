@@ -22,7 +22,6 @@ interface Interpreter<R> {
 
     // Statements
     fun interpretExpressionStmt(stmt: ExpressionStatement): R
-    fun interpretPrintStmt(stmt: PrintStatement): R
     fun interpretVarStmt(stmt: VarStatement): R
     fun interpretBlockStmt(stmt: BlockStatement): R
     fun interpretIfStmt(stmt: IfStatement): R

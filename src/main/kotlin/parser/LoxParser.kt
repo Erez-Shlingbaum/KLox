@@ -26,7 +26,6 @@ varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
 statement      → exprStmt
                | forStmt
                | ifStmt
-               | printStmt
                | returnStmt
                | whileStmt
                | block ;
@@ -37,7 +36,6 @@ forStmt        → "for" "(" ( varDecl | exprStmt | ";" )
                            expression? ")" statement ;
 ifStmt         → "if" "(" expression ")" statement
                  ( "else" statement )? ;
-printStmt      → "print" expression ";" ;
 returnStmt     → "return" expression? ";" ;
 whileStmt      → "while" "(" expression ")" statement ;
 block          → "{" declaration* "}" ;
@@ -54,9 +52,8 @@ equality       → comparison ( ( "!=" | "==" ) comparison )* ;
 comparison     → addition ( ( ">" | ">=" | "<" | "<=" ) addition )* ;
 addition       → multiplication ( ( "-" | "+" ) multiplication )* ;
 multiplication → power ( ( "/" | "*" ) power )* ;
-power → unary ( "**" unary )* ; // Note, this is left to right associative (in contrast to python, for example.)
-
 unary          → ( "!" | "-" ) unary | call ;
+power          → call ( "**" unary )* ;        // Note, this is left to right associative (in contrast to python, for example.)
 call           → primary ( "(" arguments? ")" | "." IDENTIFIER )* ;
 primary        → "true" | "false" | "nil" | "this"
                | NUMBER | STRING | IDENTIFIER | "(" expression ")"
@@ -101,7 +98,7 @@ class LoxParser(private val tokens: List<Token>, private val reportError: (token
 
             when (peek().type) {
                 TokenType.CLASS, TokenType.FUN, TokenType.VAR, TokenType.FOR,
-                TokenType.IF, TokenType.WHILE, TokenType.PRINT, TokenType.RETURN,
+                TokenType.IF, TokenType.WHILE, TokenType.RETURN,
                 -> return
                 else -> advance()
             }
@@ -122,7 +119,6 @@ class LoxParser(private val tokens: List<Token>, private val reportError: (token
 
     private fun parseStatement(): Stmt {
         return when {
-            match(TokenType.PRINT) -> parsePrintStatement()
             match(TokenType.OPEN_BRACE) -> BlockStatement(parseBlock())
             match(TokenType.IF) -> parseIfStatement()
             match(TokenType.WHILE) -> parseWhileStatement()
@@ -303,12 +299,6 @@ class LoxParser(private val tokens: List<Token>, private val reportError: (token
         }
 
         return expr
-    }
-
-    private fun parsePrintStatement(): Stmt {
-        val value: Expression = parseExpression()
-        consume(TokenType.SEMICOLON, "Expect ; after value.")
-        return PrintStatement(value)
     }
 
     private fun parseEqualityExpression(): Expression {

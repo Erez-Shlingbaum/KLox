@@ -3,6 +3,19 @@ package interpreter
 import lox.LoxCallError
 import lox.stringify
 
+object LoxPrintFunction : LoxCallable {
+    override var arity: Int = 1
+
+    override fun call(interpreter: Interpreter<Any?>, arguments: List<Any?>): Any? {
+        println(stringify(arguments[0]))
+        return null
+    }
+
+    override fun toString(): String {
+        return "<native function: print>"
+    }
+}
+
 object LoxClockFunction : LoxCallable {
     override var arity: Int = 0
 

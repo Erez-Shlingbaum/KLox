@@ -11,11 +11,6 @@ class ExpressionStatement(val expression: Expression) : Stmt {
     override fun <R> interpretBy(interpreter: Interpreter<R>): R = interpreter.interpretExpressionStmt(this)
 }
 
-
-class PrintStatement(val expression: Expression) : Stmt {
-    override fun <R> interpretBy(interpreter: Interpreter<R>): R = interpreter.interpretPrintStmt(this)
-}
-
 class VarStatement(val name: Token, val initializer: Expression?) : Stmt {
     override fun <R> interpretBy(interpreter: Interpreter<R>): R = interpreter.interpretVarStmt(this)
 }

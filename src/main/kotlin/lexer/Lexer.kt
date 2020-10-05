@@ -26,7 +26,7 @@ enum class TokenType {
 
     // Keywords.
     AND, CLASS, ELSE, FALSE, FUN, FOR, IF, NIL, OR,
-    PRINT, RETURN, SUPER, THIS, TRUE, VAR, WHILE, IN,
+    RETURN, SUPER, THIS, TRUE, VAR, WHILE, IN,
 
     EOF,
 }
@@ -58,7 +58,6 @@ class Lexer(private val source: String, private val reportError: (line: Int, msg
             "if" to TokenType.IF,
             "nil" to TokenType.NIL,
             "or" to TokenType.OR,
-            "print" to TokenType.PRINT,
             "return" to TokenType.RETURN,
             "super" to TokenType.SUPER,
             "this" to TokenType.THIS,
