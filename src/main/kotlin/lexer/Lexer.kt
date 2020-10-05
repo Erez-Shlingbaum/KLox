@@ -3,8 +3,9 @@ package lexer
 enum class TokenType {
     // Operators, etc.
     OPEN_PAREN, CLOSE_PAREN, OPEN_BRACE, CLOSE_BRACE,
-    COMMA, DOT, MINUS, PLUS, SEMICOLON, SLASH, STAR,
-    PERCENT, DOUBLE_STAR,
+    COMMA, DOT, SEMICOLON,
+    MINUS, MINUS_EQUAL, PLUS, PLUS_EQUAL, SLASH, SLASH_EQUAL, STAR, STAR_EQUAL,
+    PERCENT, PERCENT_EQUAL, DOUBLE_STAR, DOUBLE_STAR_EQUAL,
 
     // Logical
     BANG, BANG_EQUAL,
@@ -91,13 +92,22 @@ class Lexer(private val source: String, private val reportError: (line: Int, msg
             '}' -> addToken(TokenType.CLOSE_BRACE)
             ',' -> addToken(TokenType.COMMA)
             '.' -> addToken(TokenType.DOT)
-            '-' -> addToken(TokenType.MINUS)
-            '+' -> addToken(TokenType.PLUS)
             ';' -> addToken(TokenType.SEMICOLON)
-            '%' -> addToken(TokenType.PERCENT)
-            '~' -> addToken(TokenType.BIT_NOT)
-            '*' -> addToken(if (match('*')) TokenType.DOUBLE_STAR else TokenType.STAR)
+            '-' -> addToken(if (match('=')) TokenType.MINUS_EQUAL else TokenType.MINUS)
+            '+' -> addToken(if (match('=')) TokenType.PLUS_EQUAL else TokenType.PLUS)
+            '*' -> addToken(
+                when {
+                    match('*') -> when {
+                        match('=') -> TokenType.DOUBLE_STAR_EQUAL
+                        else -> TokenType.DOUBLE_STAR
+                    }
+                    match('=') -> TokenType.STAR_EQUAL
+                    else -> TokenType.STAR
+                }
+            )
+            '%' -> addToken(if (match('=')) TokenType.PERCENT_EQUAL else TokenType.PERCENT)
             '!' -> addToken(if (match('=')) TokenType.BANG_EQUAL else TokenType.BANG)
+            '~' -> addToken(TokenType.BIT_NOT)
             '^' -> addToken(if (match('=')) TokenType.BIT_XOR_EQUAL else TokenType.BIT_XOR)
             '&' -> addToken(if (match('=')) TokenType.BIT_AND_EQUAL else TokenType.BIT_AND)
             '|' -> addToken(if (match('=')) TokenType.BIT_OR_EQUAL else TokenType.BIT_OR)
@@ -110,23 +120,18 @@ class Lexer(private val source: String, private val reportError: (line: Int, msg
                 match('>') -> addToken(if (match('=')) TokenType.BIT_SHIFT_RIGHT_EQUAL else TokenType.BIT_SHIFT_RIGHT)
                 else -> addToken(if (match('=')) TokenType.GREATER_EQUAL else TokenType.GREATER)
             }
-            '/' -> {
+            '/' -> when {
                 // Comment
-                if (match('/'))
-                    while (peek() != '\n' && !isEOF())
-                        advance()
-                else
-                    addToken(TokenType.SLASH)
+                match('/') -> while (peek() != '\n' && !isEOF()) advance()
+                else -> addToken(if (match('=')) TokenType.SLASH_EQUAL else TokenType.SLASH)
             }
             ' ', '\r', '\t' -> Unit
             '\n' -> line++
             '"' -> scanString()
-            else -> {
-                when {
-                    isDigit(c) -> scanNumber()
-                    isAlpha(c) -> scanIdentifier()
-                    else -> reportError(line, "Unexpected character")
-                }
+            else -> when {
+                isDigit(c) -> scanNumber()
+                isAlpha(c) -> scanIdentifier()
+                else -> reportError(line, "Unexpected character")
             }
         }
     }

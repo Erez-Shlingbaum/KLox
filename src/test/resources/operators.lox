@@ -1,0 +1,57 @@
+var a = 5;
+var b = 9;
+
+print(a & b); // 1
+print(a | b); // 13
+print(a ^ b); // 12
+print(~a);    // -6
+print(b << 1);// 18
+print(b >> 1);// 4
+////////
+a = 1;
+a |= 2;
+a |= 4;
+a |= 8;
+a |= 16;
+a |= 32;
+a |= 64;
+a |= 128;
+a |= 256;
+print(a); // 511
+
+var x = 2;
+var y = 4;
+var z = 8;
+
+a &= x|y|z;
+print(a); // 14
+a <<= 2;
+print(a); // 56
+a >>= 3;
+print(a); // 7
+a ^= 256;
+print(a); // 263
+
+x=y=z=123;
+print(str(x) + str(y) + str(z)); // 123123123
+
+y = 321;
+z = 789;
+x |= y |= z |= 666;
+print(str(x) + " " + str(y) + " " + str(z)); // 1023 991 927
+
+x &= y &= z &= 2**32;
+print(str(x) + " " + str(y) + " " + str(z)); // 927 927 927
+
+x = 123; y = 321; z = 789;
+x ^= y ^= z ^= 679;
+print(str(x) + " " + str(y) + " " + str(z)); // 136 243 434
+
+x <<= y <<= z <<= 1;
+print(str(x) + " " + str(y) + " " + str(z)); // 8912896 3888 868
+
+x >>= y >>= z >>= 1;
+print(str(x) + " " + str(y) + " " + str(z)); // 8912896 0 434
+
+// TODO: add tests for +=, -=, *=, /=, %=, %, **=
+// TODO: also, check same thing for set expressions

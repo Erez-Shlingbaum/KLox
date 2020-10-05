@@ -2,6 +2,7 @@ package parser
 
 import interpreter.Interpreter
 import lexer.Token
+import lexer.TokenType
 
 
 interface Expression {
@@ -32,7 +33,7 @@ class VariableExpression(val name: Token) : Expression {
     override fun <R> interpretBy(interpreter: Interpreter<R>): R = interpreter.interpretVariableExpression(this)
 }
 
-class AssignmentExpression(val name: Token, val value: Expression) : Expression {
+class AssignmentExpression(val name: Token, val value: Expression, val type: TokenType) : Expression {
     override fun <R> interpretBy(interpreter: Interpreter<R>): R = interpreter.interpretAssignmentExpression(this)
 }
 
@@ -44,7 +45,7 @@ class GetExpression(val loxObject: Expression, val name: Token) : Expression {
     override fun <R> interpretBy(interpreter: Interpreter<R>): R = interpreter.interpretGetExpression(this)
 }
 
-class SetExpression(val loxObject: Expression, val name: Token, val value: Expression) : Expression {
+class SetExpression(val loxObject: Expression, val name: Token, val value: Expression, val type: TokenType) : Expression {
     override fun <R> interpretBy(interpreter: Interpreter<R>): R = interpreter.interpretSetExpression(this)
 }
 

@@ -22,6 +22,9 @@ class Scope(val enclosingScope: Scope? = null) {
         values[name] = value
     }
 
+    /**
+     * This function assumes the token is already defined.
+     */
     fun assign(token: Token, value: Any?) {
         if (token.lexeme in values) {
             values[token.lexeme] = value

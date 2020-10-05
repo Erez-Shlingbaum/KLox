@@ -58,7 +58,7 @@ bit_shift      → addition   ("|" bit_xor)*  ;
 
 addition       → multiplication ( ( "-" | "+" ) multiplication )* ;
 multiplication → power ( ( "/" | "*" ) power )* ;
-unary          → ( "!" | "-" ) unary | call ;
+unary          → ( "!" | "-"  | "~") unary | call ;
 power          → call ( "**" unary )* ;        // Note, this is left to right associative (in contrast to python, for example.)
 call           → primary ( "(" arguments? ")" | "." IDENTIFIER )* ;
 primary        → "true" | "false" | "nil" | "this"
@@ -268,15 +268,29 @@ class LoxParser(private val tokens: List<Token>, private val reportError: (token
 
     private fun parseAssignmentExpression(): Expression {
         val expr = parseOrExpression()
-        if (match(TokenType.EQUAL)) {
-            val equals = previous()
+        if (match(
+                TokenType.EQUAL,
+                TokenType.PLUS_EQUAL,
+                TokenType.MINUS_EQUAL,
+                TokenType.STAR_EQUAL,
+                TokenType.SLASH_EQUAL,
+                TokenType.DOUBLE_STAR_EQUAL,
+                TokenType.PERCENT_EQUAL,
+                TokenType.BIT_OR_EQUAL,
+                TokenType.BIT_XOR_EQUAL,
+                TokenType.BIT_AND_EQUAL,
+                TokenType.BIT_SHIFT_LEFT_EQUAL,
+                TokenType.BIT_SHIFT_RIGHT_EQUAL
+            )
+        ) {
+            val prev = previous()
             val value = parseAssignmentExpression()
 
             if (expr is GetExpression)
-                return SetExpression(expr.loxObject, expr.name, value)
+                return SetExpression(expr.loxObject, expr.name, value, prev.type)
             if (expr is VariableExpression)
-                return AssignmentExpression(expr.name, value)
-            throw parsingError(equals, "Invalid assignment target.")
+                return AssignmentExpression(expr.name, value, prev.type)
+            throw parsingError(prev, "Invalid assignment target.")
         }
         return expr
     }
@@ -377,7 +391,7 @@ class LoxParser(private val tokens: List<Token>, private val reportError: (token
 
     private fun parseMultiplication(): Expression {
         var expr: Expression = parseUnary()
-        while (match(TokenType.SLASH, TokenType.STAR)) {
+        while (match(TokenType.SLASH, TokenType.STAR, TokenType.PERCENT)) {
             val operator = previous()
             val rightExpr = parseUnary()
             expr = BinaryExpression(expr, operator, rightExpr)
@@ -386,7 +400,7 @@ class LoxParser(private val tokens: List<Token>, private val reportError: (token
     }
 
     private fun parseUnary(): Expression {
-        if (match(TokenType.BANG, TokenType.MINUS)) {
+        if (match(TokenType.BANG, TokenType.MINUS, TokenType.BIT_NOT)) {
             val operator = previous()
             val rightExpr = parseUnary()
             return UnaryExpression(operator, rightExpr)

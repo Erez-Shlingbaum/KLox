@@ -5,7 +5,7 @@ import kotlin.collections.ArrayList
 import kotlin.test.assertEquals
 
 
-class ScriptsTest: LoxTest() {
+class ScriptsTest : LoxTest() {
     @Test
     fun testFibonacci() {
         val script = File("$resourceDir/fibonacci.lox")
@@ -13,15 +13,17 @@ class ScriptsTest: LoxTest() {
 
         val scanner = Scanner(outContent.toString())
 
-        val expected: MutableList<Int> = ArrayList()
+        val actual: MutableList<Int> = ArrayList()
         while (scanner.hasNextInt())
-            expected += scanner.nextInt()
+            actual += scanner.nextInt()
 
-        assertEquals(expected,
+        assertEquals(
             listOf(
                 0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144,
                 233, 377, 610, 987, 1597, 2584, 4181,
-            ))
+            ),
+            actual
+        )
     }
 
     @Test
@@ -31,13 +33,41 @@ class ScriptsTest: LoxTest() {
 
         val scanner = Scanner(outContent.toString())
 
-        val expected: MutableList<Int> = ArrayList()
+        val actual: MutableList<Int> = ArrayList()
         while (scanner.hasNextInt())
-            expected += scanner.nextInt()
+            actual += scanner.nextInt()
 
-        assertEquals(expected,
+        assertEquals(
             listOf(
                 1, 2, 1, 2
-            ))
+            ),
+            actual
+        )
+    }
+
+    @Test
+    fun testOperators() {
+        val script = File("$resourceDir/operators.lox")
+        lox.execute(script.readText())
+
+        val source = outContent.toString()
+        val scanner = Scanner(source)
+
+        val actual: MutableList<Int> = ArrayList()
+        while (scanner.hasNextInt())
+            actual += scanner.nextInt()
+
+        assertEquals(
+            listOf(
+                1, 13, 12, -6, 18, 4,
+                511, 14, 56, 7, 263, 123123123,
+                1023, 991, 927,
+                927, 927, 927,
+                136, 243, 434,
+                8912896, 3888, 868,
+                8912896, 0, 434,
+            ),
+            actual
+        )
     }
 }
