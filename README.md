@@ -6,6 +6,7 @@ The interpreter is a tree-walk interpreter, and uses recursive decent parsing. I
 escape characters in strings, such as \n, \\, \", etc. 
 int, float types, power operator (e.g 2\*\*5).
 builtin functions: print(instead of a statement), readline, str, int, float, type.
+And, the following operators: += -= *= /= % %= **= |= ^= &= <<= >>= & | ^ << >> ~
 
 I also improved the lexer to support statements that end with '{'.
 I intend to add more features to this interprer in the future, i will update this readme appropriately.
