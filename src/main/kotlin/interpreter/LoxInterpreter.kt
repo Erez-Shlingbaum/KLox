@@ -285,12 +285,6 @@ class LoxInterpreter(val interpreterErrorReporter: KFunction1<LoxRuntimeError, U
     override fun interpretAssignmentExpression(expr: AssignmentExpression): Any? {
         val rightValue = eval(expr.value)
 
-
-        // TokenType.BIT_OR_EQUAL,
-        // TokenType.BIT_XOR_EQUAL,
-        // TokenType.BIT_AND_EQUAL,
-        // TokenType.BIT_SHIFT_LEFT_EQUAL,
-        // TokenType.BIT_SHIFT_RIGHT_EQUAL
         return when (val depth = locals[expr]) {
             null -> when (expr.type) {
                 TokenType.EQUAL -> {
@@ -305,21 +299,22 @@ class LoxInterpreter(val interpreterErrorReporter: KFunction1<LoxRuntimeError, U
                     // Make sure we are dealing with numbers
                     checkNumberOperands(expr.name, currentVal, rightValue)
 
-                    val newVal = newValNumberOperation(expr, currentVal as Number, rightValue as Number)
+                    val newVal = newValNumberOperation(expr.type, currentVal as Number, rightValue as Number)
                     globalScope.assign(expr.name, newVal)
                     newVal
                 }
                 // Bit operations
-                else -> {
+                TokenType.BIT_OR_EQUAL, TokenType.BIT_XOR_EQUAL, TokenType.BIT_AND_EQUAL, TokenType.BIT_SHIFT_LEFT_EQUAL, TokenType.BIT_SHIFT_RIGHT_EQUAL -> {
                     val currentVal = globalScope.get(expr.name)
 
                     // For bits operations, make sure we are dealing with ints
                     checkIntsOperands(expr.name, currentVal, rightValue)
 
-                    val newVal = newValBitOperation(expr, currentVal, rightValue)
+                    val newVal = newValBitOperation(expr.type, currentVal as Int, rightValue as Int)
                     globalScope.assign(expr.name, newVal)
                     newVal
                 }
+                else -> error("Unexpected operation")
             }
             // depth != null
             else -> when (expr.type) {
@@ -334,27 +329,28 @@ class LoxInterpreter(val interpreterErrorReporter: KFunction1<LoxRuntimeError, U
                     // Make sure we are dealing with numbers
                     checkNumberOperands(expr.name, currentVal, rightValue)
 
-                    val newVal = newValNumberOperation(expr, currentVal as Number, rightValue as Number)
+                    val newVal = newValNumberOperation(expr.type, currentVal as Number, rightValue as Number)
                     globalScope.assignAt(depth, expr.name, newVal)
                     newVal
                 }
-                else -> {
+                TokenType.BIT_OR_EQUAL, TokenType.BIT_XOR_EQUAL, TokenType.BIT_AND_EQUAL, TokenType.BIT_SHIFT_LEFT_EQUAL, TokenType.BIT_SHIFT_RIGHT_EQUAL -> {
                     // Bit operations
                     val currentVal = globalScope.getAt(depth, expr.name.lexeme)
 
                     // For bits operations, make sure we are dealing with ints
                     checkIntsOperands(expr.name, currentVal, rightValue)
 
-                    val newVal = newValBitOperation(expr, currentVal, rightValue)
+                    val newVal = newValBitOperation(expr.type, currentVal as Int, rightValue as Int)
                     globalScope.assignAt(depth, expr.name, newVal)
                     newVal
                 }
+                else -> error("Unexpected operation")
             }
         }
     }
 
-    private fun newValNumberOperation(expr: AssignmentExpression, currentVal: Number, rightValue: Number): Number {
-        return when (expr.type) {
+    private fun newValNumberOperation(type: TokenType, currentVal: Number, rightValue: Number): Number {
+        return when (type) {
             TokenType.PLUS_EQUAL -> if (currentVal is Int && rightValue is Int) currentVal + rightValue else currentVal.toDouble() + rightValue.toDouble()
             TokenType.MINUS_EQUAL -> if (currentVal is Int && rightValue is Int) currentVal - rightValue else currentVal.toDouble() - rightValue.toDouble()
             TokenType.STAR_EQUAL -> if (currentVal is Int && rightValue is Int) currentVal * rightValue else currentVal.toDouble() * rightValue.toDouble()
@@ -366,16 +362,16 @@ class LoxInterpreter(val interpreterErrorReporter: KFunction1<LoxRuntimeError, U
     }
 
     private fun newValBitOperation(
-        expr: AssignmentExpression,
-        currentVal: Any?,
-        rightValue: Any?
+        type: TokenType,
+        currentVal: Int,
+        rightValue: Int
     ): Int {
-        return when (expr.type) {
-            TokenType.BIT_OR_EQUAL -> currentVal as Int or rightValue as Int
-            TokenType.BIT_XOR_EQUAL -> currentVal as Int xor rightValue as Int
-            TokenType.BIT_AND_EQUAL -> currentVal as Int and rightValue as Int
-            TokenType.BIT_SHIFT_LEFT_EQUAL -> currentVal as Int shl rightValue as Int
-            TokenType.BIT_SHIFT_RIGHT_EQUAL -> currentVal as Int shr rightValue as Int
+        return when (type) {
+            TokenType.BIT_OR_EQUAL -> currentVal or rightValue
+            TokenType.BIT_XOR_EQUAL -> currentVal xor rightValue
+            TokenType.BIT_AND_EQUAL -> currentVal and rightValue
+            TokenType.BIT_SHIFT_LEFT_EQUAL -> currentVal shl rightValue
+            TokenType.BIT_SHIFT_RIGHT_EQUAL -> currentVal shr rightValue
             else -> error("Unexpected operation")
         }
     }
@@ -480,15 +476,34 @@ class LoxInterpreter(val interpreterErrorReporter: KFunction1<LoxRuntimeError, U
     }
 
     override fun interpretSetExpression(expr: SetExpression): Any? {
-
-        // TODO!!! like assignment expression
-
         val loxObject = eval(expr.loxObject)
         if (loxObject !is LoxInstance)
             throw LoxRuntimeError(expr.name, "Only instances have fields.")
-        val value = eval(expr.value)
-        loxObject.set(expr.name, value)
-        return value
+
+        val rightValue = eval(expr.value)
+
+        val currentVal = if (expr.type != TokenType.EQUAL) loxObject.get(expr.name) else null
+
+        val newVal = when (expr.type) {
+            TokenType.EQUAL -> rightValue
+
+            TokenType.PLUS_EQUAL, TokenType.MINUS_EQUAL, TokenType.STAR_EQUAL,
+            TokenType.SLASH_EQUAL, TokenType.DOUBLE_STAR_EQUAL, TokenType.PERCENT_EQUAL -> {
+                // Make sure we are dealing with numbers
+                checkNumberOperands(expr.name, currentVal, rightValue)
+                newValNumberOperation(expr.type, currentVal as Number, rightValue as Number)
+            }
+            // Bit operations
+            TokenType.BIT_OR_EQUAL, TokenType.BIT_XOR_EQUAL, TokenType.BIT_AND_EQUAL, TokenType.BIT_SHIFT_LEFT_EQUAL, TokenType.BIT_SHIFT_RIGHT_EQUAL -> {
+                // For bits operations, make sure we are dealing with ints
+                checkIntsOperands(expr.name, currentVal, rightValue)
+                newValBitOperation(expr.type, currentVal as Int, rightValue as Int)
+            }
+            else -> error("Unexpected operation")
+        }
+
+        loxObject.set(expr.name, newVal)
+        return newVal
     }
 
     override fun interpretThisExpression(expr: ThisExpression): Any? = lookupVariable(expr.keyword, expr)

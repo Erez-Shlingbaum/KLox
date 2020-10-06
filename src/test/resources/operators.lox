@@ -53,5 +53,78 @@ print(str(x) + " " + str(y) + " " + str(z)); // 8912896 3888 868
 x >>= y >>= z >>= 1;
 print(str(x) + " " + str(y) + " " + str(z)); // 8912896 0 434
 
-// TODO: add tests for +=, -=, *=, /=, %=, %, **=
-// TODO: also, check same thing for set expressions
+x = 1; y = 1; z = 1;
+
+x += y += z += 1;
+print(str(x) + " " + str(y) + " " + str(z)); // 4 3 2
+x -= y -= z -= 15;
+print(str(x) + " " + str(y) + " " + str(z)); // -12 16 -13
+x *= y *= z *= 7;
+print(str(x) + " " + str(y) + " " + str(z)); // 17472 -1456 -91
+x /= y /= z /= 3;
+print(str(x) + " " + str(y) + " " + str(z)); // 364 48 -30
+x %= y += z *= 3;
+print(str(x) + " " + str(y) + " " + str(z)); // 28 -42 -90
+x = 2; y = 2; z = 2;
+x **= y **= z **= 2;
+x = int(x); y = int(y); z = int(z);
+print(str(x) + " " + str(y) + " " + str(z)); // 65536 16 4
+
+////////////////////////////////////////////// Set expressions
+class Cls{
+    init(){
+        this.a = 511;
+        this.x = 2;
+        this.y = 4;
+        this.z = 8;
+    }
+}
+
+var cls = Cls();
+
+cls.a &= cls.x|cls.y|cls.z;
+print(cls.a); // 14
+cls.a <<= 2;
+print(cls.a); // 56
+cls.a >>= 3;
+print(cls.a); // 7
+cls.a ^= 256;
+print(cls.a); // 263
+
+cls.x=cls.y=cls.z=123;
+print(str(cls.x) + str(cls.y) + str(cls.z)); // 123123123
+
+cls.y = 321;
+cls.z = 789;
+cls.x |= cls.y |= cls.z |= 666;
+print(str(cls.x) + " " + str(cls.y) + " " + str(cls.z)); // 1023 991 927
+
+cls.x &= cls.y &= cls.z &= 2**32;
+print(str(cls.x) + " " + str(cls.y) + " " + str(cls.z)); // 927 927 927
+
+cls.x = 123; cls.y = 321; cls.z = 789;
+cls.x ^= cls.y ^= cls.z ^= 679;
+print(str(cls.x) + " " + str(cls.y) + " " + str(cls.z)); // 136 243 434
+
+cls.x <<= cls.y <<= cls.z <<= 1;
+print(str(cls.x) + " " + str(cls.y) + " " + str(cls.z)); // 8912896 3888 868
+
+cls.x >>= cls.y >>= cls.z >>= 1;
+print(str(cls.x) + " " + str(cls.y) + " " + str(cls.z)); // 8912896 0 434
+
+cls.x = 1; cls.y = 1; cls.z = 1;
+
+cls.x += cls.y += cls.z += 1;
+print(str(cls.x) + " " + str(cls.y) + " " + str(cls.z)); // 4 3 2
+cls.x -= cls.y -= cls.z -= 15;
+print(str(cls.x) + " " + str(cls.y) + " " + str(cls.z)); // -12 16 -13
+cls.x *= cls.y *= cls.z *= 7;
+print(str(cls.x) + " " + str(cls.y) + " " + str(cls.z)); // 17472 -1456 -91
+cls.x /= cls.y /= cls.z /= 3;
+print(str(cls.x) + " " + str(cls.y) + " " + str(cls.z)); // 364 48 -30
+cls.x %= cls.y += cls.z *= 3;
+print(str(cls.x) + " " + str(cls.y) + " " + str(cls.z)); // 28 -42 -90
+cls.x = 2; cls.y = 2; cls.z = 2;
+cls.x **= cls.y **= cls.z **= 2;
+cls.x = int(cls.x); cls.y = int(cls.y); cls.z = int(cls.z);
+print(str(cls.x) + " " + str(cls.y) + " " + str(cls.z)); // 65536 16 4

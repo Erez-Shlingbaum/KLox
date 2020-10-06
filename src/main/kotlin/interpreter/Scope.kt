@@ -48,6 +48,9 @@ class Scope(val enclosingScope: Scope? = null) {
         return scope
     }
 
+    /**
+     * This function does not assume variables are already defined
+     */
     fun assignAt(depth: Int, name: Token, value: Any?) {
         ancestor(depth).values[name.lexeme] = value
     }
