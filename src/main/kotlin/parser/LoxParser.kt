@@ -43,7 +43,7 @@ block          → "{" declaration* "}" ;
 ////////////////
 expression     → assignment ;
 
-assignment     → ( call "." )? IDENTIFIER "=" assignment
+assignment     → ( call "." )? IDENTIFIER ("=" | "+=" | "-=" | "*=" | "/=" | "%=" | "**=" | "|=" | "^=" | "&=" | "<<=" | ">>=") assignment
                | logic_or ;
 
 logic_or       → logic_and ( "or" logic_and )* ;
@@ -54,7 +54,7 @@ comparison     → bit_or ( ( ">" | ">=" | "<" | "<=" ) bit_or )* ;
 bit_or         → bit_xor    ("|" bit_xor)*  ;
 bit_xor        → bit_and    ("^" bit_and)*  ;
 bit_and        → bit_shift  ("&" bit_shift)*;
-bit_shift      → addition   ("|" bit_xor)*  ;
+bit_shift      → addition   (("<<" | ">>") bit_xor)*  ;
 
 addition       → multiplication ( ( "-" | "+" ) multiplication )* ;
 multiplication → power ( ( "/" | "*" ) power )* ;
