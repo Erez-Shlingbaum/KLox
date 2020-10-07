@@ -3,26 +3,11 @@ package interpreter
 import lexer.Token
 import lox.LoxRuntimeError
 
-//val LoxObjectClass: LoxClass = LoxClass("object", null, hashMapOf())
-
 class LoxClass(
     val name: String,
     private val superclass: LoxClass?,
     private val methods: MutableMap<String, LoxFunction>,
 ) : LoxCallable {
-
-//    private val superclass: LoxClass?
-//
-//    init {
-//         If this class has no superclass, automatically inherit LoxObjectClass
-//        if (superclass == null && name != "object") {
-//            this.superclass = LoxClass("object", null, hashMapOf(
-//                "str" to LoxFunction(FunStatement())
-//            ))
-//        } else
-//            this.superclass = null
-//    }
-
     override var arity: Int = 0
         get() {
             val initializer = findMethod("init") ?: return field
@@ -48,10 +33,18 @@ class LoxClass(
     override fun toString(): String = "<class ${name}>"
 }
 
-class LoxInstance(private val loxClass: LoxClass) {
+/**
+ * Any class the implements this class, can be used with get and set expressions
+ */
+interface LoxInstanceBase {
+    fun get(name: Token): Any?
+    fun set(name: Token, value: Any?)
+}
+
+open class LoxInstance(private val loxClass: LoxClass) : LoxInstanceBase {
     private val fields: MutableMap<String, Any?> = HashMap()
 
-    fun get(name: Token): Any? {
+    override fun get(name: Token): Any? {
         if (name.lexeme in fields)
             return fields[name.lexeme]
 
@@ -62,7 +55,7 @@ class LoxInstance(private val loxClass: LoxClass) {
         throw LoxRuntimeError(name, "Undefined property '${name.lexeme}'.")
     }
 
-    fun set(name: Token, value: Any?) {
+    override fun set(name: Token, value: Any?) {
         fields[name.lexeme] = value
     }
 

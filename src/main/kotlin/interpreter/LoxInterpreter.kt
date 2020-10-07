@@ -44,6 +44,7 @@ class LoxInterpreter(val interpreterErrorReporter: KFunction1<LoxRuntimeError, U
         globalScope.define("float", LoxFloatFunction)
         globalScope.define("str", LoxStrFunction)
         globalScope.define("type", LoxTypeFunction)
+        globalScope.define("list", LoxListInstance.NewList)
     }
 
     // Initialize the interpreter's first scope to be the global scope
@@ -470,14 +471,14 @@ class LoxInterpreter(val interpreterErrorReporter: KFunction1<LoxRuntimeError, U
 
     override fun interpretGetExpression(expr: GetExpression): Any? {
         val loxObject = eval(expr.loxObject)
-        if (loxObject is LoxInstance)
+        if (loxObject is LoxInstanceBase)
             return loxObject.get(expr.name)
         throw LoxRuntimeError(expr.name, "Only instances have properties.")
     }
 
     override fun interpretSetExpression(expr: SetExpression): Any? {
         val loxObject = eval(expr.loxObject)
-        if (loxObject !is LoxInstance)
+        if (loxObject !is LoxInstanceBase)
             throw LoxRuntimeError(expr.name, "Only instances have fields.")
 
         val rightValue = eval(expr.value)

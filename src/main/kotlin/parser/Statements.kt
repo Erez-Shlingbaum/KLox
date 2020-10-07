@@ -15,7 +15,6 @@ class VarStatement(val name: Token, val initializer: Expression?) : Stmt {
     override fun <R> interpretBy(interpreter: Interpreter<R>): R = interpreter.interpretVarStmt(this)
 }
 
-
 class BlockStatement(val statements: List<Stmt>) : Stmt {
     override fun <R> interpretBy(interpreter: Interpreter<R>): R = interpreter.interpretBlockStmt(this)
 }

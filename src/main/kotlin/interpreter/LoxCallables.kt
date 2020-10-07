@@ -2,10 +2,15 @@ package interpreter
 
 import parser.FunStatement
 
-internal interface LoxCallable {
+interface LoxCallable {
     var arity: Int
     fun call(interpreter: Interpreter<Any?>, arguments: List<Any?>): Any?
 }
+
+
+//abstract class LoxFunctionBase(protected val closure: Scope) : LoxCallable {
+//    abstract fun bind(loxInstance: LoxInstance): LoxFunctionBase
+//}
 
 /**
  * @param declaration function declaration statement, to execute

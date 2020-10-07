@@ -100,7 +100,7 @@ object LoxTypeFunction : LoxCallable {
             is String -> "<str>"
             is Boolean -> "<bool>"
             is LoxClass -> arg.toString()
-            is LoxInstance -> "<$arg>"
+            is LoxInstanceBase -> "<$arg>"
             is LoxCallable -> arg.toString()
             else -> "TODO" // Should not happen
         }
