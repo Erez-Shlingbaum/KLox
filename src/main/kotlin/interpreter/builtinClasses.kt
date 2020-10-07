@@ -54,26 +54,14 @@ class LoxListInstance : LoxInstanceBase {
             override var arity: Int = 1
 
             override fun call(interpreter: Interpreter<Any?>, arguments: List<Any?>): Any? {
-                val index = arguments[0]
-                if (index !is Int)
-                    throw LoxCallError("index should be integer")
-                if (index < 0 || index >= list.size)
-                    throw LoxCallError("index is no in valid range")
-
-                return list[index]
+                return getAt(arguments[0])
             }
         }
         methods["set_at"] = object : LoxCallable {
             override var arity: Int = 2
 
             override fun call(interpreter: Interpreter<Any?>, arguments: List<Any?>): Any? {
-                val index = arguments[0]
-                if (index !is Int)
-                    throw LoxCallError("index should be integer")
-                if (index < 0 || index >= list.size)
-                    throw LoxCallError("index is no in valid range")
-                list[index] = arguments[1]
-                return null
+                return setAt(arguments[0], arguments[1])
             }
         }
     }
@@ -86,5 +74,23 @@ class LoxListInstance : LoxInstanceBase {
 
     override fun set(name: Token, value: Any?) {
         throw LoxCallError("Can't set attribute for builtin classes.")
+    }
+
+    fun getAt(index: Any?): Any? {
+        if (index !is Int)
+            throw LoxCallError("index should be integer")
+        if (index < 0 || index >= list.size)
+            throw LoxCallError("index is no in valid range")
+
+        return list[index]
+    }
+
+    fun setAt(index: Any?, value: Any?): Nothing? {
+        if (index !is Int)
+            throw LoxCallError("index should be integer")
+        if (index < 0 || index >= list.size)
+            throw LoxCallError("index is no in valid range")
+        list[index] = value
+        return null
     }
 }

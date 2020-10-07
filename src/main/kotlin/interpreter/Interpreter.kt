@@ -10,6 +10,7 @@ interface Interpreter<R> {
     fun interpretUnaryExpr(expr: UnaryExpression): R
     fun interpretBinaryExpr(expr: BinaryExpression): R
     fun interpretGroupingExpr(expr: GroupingExpression): R
+    fun interpretSquareBracketsExpr(expression: SquareBracketsExpression): R
     fun interpretLiteralExpr(expr: LiteralExpression): R
     fun interpretVariableExpression(expr: VariableExpression): R
     fun interpretAssignmentExpression(expr: AssignmentExpression): R
@@ -19,6 +20,7 @@ interface Interpreter<R> {
     fun interpretSetExpression(expr: SetExpression): R
     fun interpretThisExpression(expr: ThisExpression): R
     fun interpretSuperExpression(expr: SuperExpression): R
+    fun interpretSetSquareBracketsExpression(expression: SetSquareBracketsExpression): R
 
     // Statements
     fun interpretExpressionStmt(stmt: ExpressionStatement): R

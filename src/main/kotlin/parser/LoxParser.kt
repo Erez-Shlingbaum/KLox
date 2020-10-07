@@ -59,10 +59,10 @@ bit_shift      → addition   (("<<" | ">>") bit_xor)*  ;
 addition       → multiplication ( ( "-" | "+" ) multiplication )* ;
 multiplication → power ( ( "/" | "*" ) power )* ;
 unary          → ( "!" | "-"  | "~") unary | call ;
-power          → call ( "**" unary )* ;        // Note, this is left to right associative (in contrast to python, for example.)
-call           → primary ( "(" arguments? ")" | "." IDENTIFIER )* ;
+power          → call ( "**" unary )* ;
+call           → primary ( "(" arguments? ")" | "[" arguments? "]" | "." IDENTIFIER )* ;
 primary        → "true" | "false" | "nil" | "this"
-               | NUMBER | STRING | IDENTIFIER | "(" expression ")"
+               | NUMBER | STRING | IDENTIFIER | "(" expression ")" | "[" arguments? "]"
                | "super" "." IDENTIFIER ;
 
 
@@ -290,6 +290,8 @@ class LoxParser(private val tokens: List<Token>, private val reportError: (token
                 return SetExpression(expr.loxObject, expr.name, value, prev.type)
             if (expr is VariableExpression)
                 return AssignmentExpression(expr.name, value, prev.type)
+            if (expr is CallExpression && expr.paren.type == TokenType.CLOSE_SQUARE_BRACKET)
+                return SetSquareBracketsExpression(expr.callee, expr.arguments, value, prev)
             throw parsingError(prev, "Invalid assignment target.")
         }
         return expr
@@ -423,6 +425,7 @@ class LoxParser(private val tokens: List<Token>, private val reportError: (token
 
         loop@ while (true) expr = when {
             match(TokenType.OPEN_PAREN) -> parseOneCall(expr)
+            match(TokenType.OPEN_SQUARE_BRACKET) -> parseSquareBracketsCallExpression(expr)
             match(TokenType.DOT) -> {
                 val name = consume(TokenType.IDENTIFIER, "Expect property name after '.'.")
                 GetExpression(expr, name)
@@ -437,17 +440,31 @@ class LoxParser(private val tokens: List<Token>, private val reportError: (token
 
     // Helper function: Parse one call expression
     private fun parseOneCall(callee: Expression): Expression {
-        val arguments: MutableList<Expression> = ArrayList()
-        if (!check(TokenType.CLOSE_PAREN)) do {
+        val (arguments, paren) = parseArguments(TokenType.CLOSE_PAREN, ")", 255)
+        return CallExpression(callee, paren, arguments)
+    }
 
+    private fun parseSquareBracketsCallExpression(callee: Expression): Expression {
+        val (arguments, paren) = parseArguments(TokenType.CLOSE_SQUARE_BRACKET, "]", 1)
+        return CallExpression(callee, paren, arguments)
+    }
+
+    private fun parseArguments(
+        closingToken: TokenType,
+        closingTokenAsStr: String,
+        upperArgSizeLimit: Int?
+    ): Pair<MutableList<Expression>, Token> {
+        val arguments: MutableList<Expression> = ArrayList()
+        if (!check(closingToken)) do {
             // return value is intentionally not thrown
-            if (arguments.size == 255)
-                parsingError(peek(), "Cannot have more than 255 arguments.")
+            if (upperArgSizeLimit != null)
+                if (arguments.size == upperArgSizeLimit)
+                    parsingError(peek(), "Cannot have more than $upperArgSizeLimit arguments.")
+
             arguments += parseExpression()
         } while (match(TokenType.COMMA))
-
-        val paren = consume(TokenType.CLOSE_PAREN, "Expect ')' after arguments.")
-        return CallExpression(callee, paren, arguments)
+        val paren = consume(closingToken, "Expect '$closingTokenAsStr' after arguments.")
+        return Pair(arguments, paren)
     }
 
     private fun parsePrimary(): Expression {
@@ -466,6 +483,15 @@ class LoxParser(private val tokens: List<Token>, private val reportError: (token
                 consume(TokenType.CLOSE_PAREN, "No ')' after expression")
                 GroupingExpression(expr)
             }
+            match(TokenType.OPEN_SQUARE_BRACKET) -> {
+                val (arguments: MutableList<Expression>, paren) = parseArguments(
+                    TokenType.CLOSE_SQUARE_BRACKET,
+                    "]",
+                    null
+                )
+                SquareBracketsExpression(paren, arguments)
+            }
+
             match(TokenType.THIS) -> ThisExpression(previous())
             match(TokenType.SUPER) -> {
                 val keyword = previous()

@@ -113,6 +113,11 @@ class Resolver(
         resolve(expr.expression)
     }
 
+    override fun interpretSquareBracketsExpr(expr: SquareBracketsExpression) {
+        for (argument in expr.arguments)
+            resolve(argument)
+    }
+
     override fun interpretLiteralExpr(expr: LiteralExpression) = Unit
 
     override fun interpretVariableExpression(expr: VariableExpression) {
@@ -149,6 +154,13 @@ class Resolver(
         define(stmt.name)
     }
 
+    override fun interpretSetSquareBracketsExpression(expression: SetSquareBracketsExpression) {
+        resolve(expression.callee)
+        for (argument in expression.arguments)
+            resolve(argument)
+        resolve(expression.value)
+    }
+
     override fun interpretIfStmt(stmt: IfStatement) {
         resolve(stmt.condition)
         resolve(stmt.thenBranch)
@@ -180,7 +192,7 @@ class Resolver(
     }
 
     override fun executeBlock(statements: List<Stmt>, scope: Scope): Unit =
-        error("This method should be used inside the resolver")
+        error("This method should not be used inside the resolver")
 
     override fun interpretClassStmt(stmt: ClassStatement) {
         val enclosingClass = currentClass

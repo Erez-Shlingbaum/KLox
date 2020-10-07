@@ -2,7 +2,7 @@ package lexer
 
 enum class TokenType {
     // Operators, etc.
-    OPEN_PAREN, CLOSE_PAREN, OPEN_BRACE, CLOSE_BRACE,
+    OPEN_PAREN, CLOSE_PAREN, OPEN_BRACE, CLOSE_BRACE, OPEN_SQUARE_BRACKET, CLOSE_SQUARE_BRACKET,
     COMMA, DOT, SEMICOLON,
     MINUS, MINUS_EQUAL, PLUS, PLUS_EQUAL, SLASH, SLASH_EQUAL, STAR, STAR_EQUAL,
     PERCENT, PERCENT_EQUAL, DOUBLE_STAR, DOUBLE_STAR_EQUAL,
@@ -88,6 +88,8 @@ class Lexer(private val source: String, private val reportError: (line: Int, msg
         when (val c: Char = advance()) {
             '(' -> addToken(TokenType.OPEN_PAREN)
             ')' -> addToken(TokenType.CLOSE_PAREN)
+            '[' -> addToken(TokenType.OPEN_SQUARE_BRACKET)
+            ']' -> addToken(TokenType.CLOSE_SQUARE_BRACKET)
             '{' -> addToken(TokenType.OPEN_BRACE)
             '}' -> addToken(TokenType.CLOSE_BRACE)
             ',' -> addToken(TokenType.COMMA)

@@ -102,7 +102,7 @@ class LoxInterpreter(val interpreterErrorReporter: KFunction1<LoxRuntimeError, U
                 checkIntsOperands(expr.operator, rightValue)
                 (rightValue as Int).inv()
             }
-            else -> null // TODO i am pretty sure we need to error() here
+            else -> error("This throws an error TODO check later what should I do here") // TODO i am pretty sure we need to error() here
         }
     }
 
@@ -236,6 +236,24 @@ class LoxInterpreter(val interpreterErrorReporter: KFunction1<LoxRuntimeError, U
 
     override fun interpretGroupingExpr(expr: GroupingExpression): Any? {
         return eval(expr.expression)
+    }
+
+    override fun interpretSquareBracketsExpr(expression: SquareBracketsExpression): Any? {
+        return LoxListInstance().apply { list.addAll(expression.arguments.map { t -> eval(t) }) }
+    }
+
+    override fun interpretSetSquareBracketsExpression(expression: SetSquareBracketsExpression): Any? {
+        val callee = eval(expression.callee)
+        if (callee !is LoxListInstance)
+            throw LoxRuntimeError(expression.paren, "Can only set with square brackets on lists")
+
+        val args = expression.arguments.map { eval(it) }
+        val value = eval(expression.value)
+
+        if (args.size != 1)
+            throw LoxRuntimeError(expression.paren, "Currently, square brackets notation only supports 1 argument.")
+        callee.setAt(args[0], value)
+        return Unit
     }
 
     override fun interpretLiteralExpr(expr: LiteralExpression): Any? {
@@ -422,13 +440,23 @@ class LoxInterpreter(val interpreterErrorReporter: KFunction1<LoxRuntimeError, U
         val arguments: MutableList<Any?> = ArrayList()
         for (arg in expr.arguments)
             arguments += eval(arg)
-
-        if (callee !is LoxCallable)
-            throw LoxRuntimeError(expr.paren, "Can only call functions and classes.")
-        if (arguments.size != callee.arity)
-            throw LoxRuntimeError(expr.paren, "Expected ${callee.arity} arguments but got ${arguments.size} .")
         try {
-            return callee.call(this, arguments)
+            when (callee) {
+                is LoxListInstance -> {
+                    return callee.getAt(arguments[0])
+                }
+                else -> {
+                    if (callee !is LoxCallable)
+                        throw LoxRuntimeError(expr.paren, "Can only call functions and classes.")
+                    if (arguments.size != callee.arity)
+                        throw LoxRuntimeError(
+                            expr.paren,
+                            "Expected ${callee.arity} arguments but got ${arguments.size} ."
+                        )
+
+                    return callee.call(this, arguments)
+                }
+            }
         } catch (e: LoxCallError) {
             throw LoxRuntimeError(expr.paren, e.msg)
         }

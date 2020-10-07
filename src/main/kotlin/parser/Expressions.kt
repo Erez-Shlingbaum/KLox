@@ -25,6 +25,10 @@ class GroupingExpression(val expression: Expression) : Expression {
     override fun <R> interpretBy(interpreter: Interpreter<R>): R = interpreter.interpretGroupingExpr(this)
 }
 
+class SquareBracketsExpression(val paren: Token, val arguments: List<Expression>) : Expression {
+    override fun <R> interpretBy(interpreter: Interpreter<R>): R = interpreter.interpretSquareBracketsExpr(this)
+}
+
 class LiteralExpression(val value: Any?) : Expression {
     override fun <R> interpretBy(interpreter: Interpreter<R>): R = interpreter.interpretLiteralExpr(this)
 }
@@ -45,7 +49,8 @@ class GetExpression(val loxObject: Expression, val name: Token) : Expression {
     override fun <R> interpretBy(interpreter: Interpreter<R>): R = interpreter.interpretGetExpression(this)
 }
 
-class SetExpression(val loxObject: Expression, val name: Token, val value: Expression, val type: TokenType) : Expression {
+class SetExpression(val loxObject: Expression, val name: Token, val value: Expression, val type: TokenType) :
+    Expression {
     override fun <R> interpretBy(interpreter: Interpreter<R>): R = interpreter.interpretSetExpression(this)
 }
 
@@ -55,4 +60,12 @@ class ThisExpression(val keyword: Token) : Expression {
 
 class SuperExpression(val keyword: Token, val method: Token) : Expression {
     override fun <R> interpretBy(interpreter: Interpreter<R>): R = interpreter.interpretSuperExpression(this)
+}
+
+class SetSquareBracketsExpression(val callee: Expression, val arguments: List<Expression>, val value: Expression, val paren: Token) :
+    Expression {
+    override fun <R> interpretBy(interpreter: Interpreter<R>): R =
+        interpreter.interpretSetSquareBracketsExpression(this)
+
+
 }
