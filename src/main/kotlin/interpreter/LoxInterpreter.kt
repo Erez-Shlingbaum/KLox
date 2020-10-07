@@ -44,6 +44,7 @@ class LoxInterpreter(val interpreterErrorReporter: KFunction1<LoxRuntimeError, U
         globalScope.define("float", LoxFloatFunction)
         globalScope.define("str", LoxStrFunction)
         globalScope.define("type", LoxTypeFunction)
+        globalScope.define("len", LoxLenFunction)
         globalScope.define("list", LoxListInstance.NewList)
     }
 

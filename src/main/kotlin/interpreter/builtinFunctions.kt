@@ -110,3 +110,19 @@ object LoxTypeFunction : LoxCallable {
         return "<native function: type>"
     }
 }
+
+object LoxLenFunction : LoxCallable {
+    override var arity: Int = 1
+
+    override fun call(interpreter: Interpreter<Any?>, arguments: List<Any?>): Any? {
+        return when (val arg = arguments[0]) {
+            is String -> arg.length
+            is LoxListInstance -> arg.list.size
+            else -> throw LoxCallError("Can't calculate length, not a valid argument")
+        }
+    }
+
+    override fun toString(): String {
+        return "<native function: str>"
+    }
+}
