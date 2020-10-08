@@ -344,24 +344,24 @@ class LoxInterpreter(val interpreterErrorReporter: KFunction1<LoxRuntimeError, U
                 }
                 TokenType.PLUS_EQUAL, TokenType.MINUS_EQUAL, TokenType.STAR_EQUAL,
                 TokenType.SLASH_EQUAL, TokenType.DOUBLE_STAR_EQUAL, TokenType.PERCENT_EQUAL -> {
-                    val currentVal = globalScope.getAt(depth, expr.name.lexeme)
+                    val currentVal = currentScope.getAt(depth, expr.name.lexeme)
 
                     // Make sure we are dealing with numbers
                     checkNumberOperands(expr.name, currentVal, rightValue)
 
                     val newVal = newValNumberOperation(expr.type, currentVal as Number, rightValue as Number)
-                    globalScope.assignAt(depth, expr.name, newVal)
+                    currentScope.assignAt(depth, expr.name, newVal)
                     newVal
                 }
                 TokenType.BIT_OR_EQUAL, TokenType.BIT_XOR_EQUAL, TokenType.BIT_AND_EQUAL, TokenType.BIT_SHIFT_LEFT_EQUAL, TokenType.BIT_SHIFT_RIGHT_EQUAL -> {
                     // Bit operations
-                    val currentVal = globalScope.getAt(depth, expr.name.lexeme)
+                    val currentVal = currentScope.getAt(depth, expr.name.lexeme)
 
                     // For bits operations, make sure we are dealing with ints
                     checkIntsOperands(expr.name, currentVal, rightValue)
 
                     val newVal = newValBitOperation(expr.type, currentVal as Int, rightValue as Int)
-                    globalScope.assignAt(depth, expr.name, newVal)
+                    currentScope.assignAt(depth, expr.name, newVal)
                     newVal
                 }
                 else -> error("Unexpected operation")

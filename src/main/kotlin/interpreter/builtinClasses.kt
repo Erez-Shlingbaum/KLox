@@ -4,7 +4,10 @@ import lexer.Token
 import lox.LoxCallError
 import lox.LoxRuntimeError
 
-class LoxListInstance : LoxInstanceBase {
+/**
+ * @param values list of values to initialzie this list
+ */
+class LoxListInstance(values: List<Any?>? = null) : LoxInstanceBase {
     // This is the list "constructor" function (builtin classes don't need "LoxClass.kt"
     companion object NewList : LoxCallable {
         override var arity: Int = 0
@@ -14,10 +17,15 @@ class LoxListInstance : LoxInstanceBase {
         }
     }
 
-    private val methods: MutableMap<String, LoxCallable> = HashMap()
-
     // Inner list object
     val list: MutableList<Any?> = ArrayList()
+
+    init {
+        if (values != null)
+            list.addAll(values)
+    }
+
+    private val methods: MutableMap<String, LoxCallable> = HashMap()
 
     // Initialize this class methods
     init {
@@ -32,37 +40,47 @@ class LoxListInstance : LoxInstanceBase {
         methods["pop"] = object : LoxCallable {
             override var arity: Int = 0
 
-            override fun call(interpreter: Interpreter<Any?>, arguments: List<Any?>): Any? {
-                return list.removeLastOrNull() ?: throw LoxCallError("List is empty!")
-            }
+            override fun call(interpreter: Interpreter<Any?>, arguments: List<Any?>): Any? =
+                list.removeLastOrNull() ?: throw LoxCallError("List is empty!")
         }
         methods["clear"] = object : LoxCallable {
             override var arity: Int = 0
 
+            override fun call(interpreter: Interpreter<Any?>, arguments: List<Any?>): Any? = list.clear()
+        }
+
+        methods["slice"] = object : LoxCallable {
+            override var arity: Int = 2
+
             override fun call(interpreter: Interpreter<Any?>, arguments: List<Any?>): Any? {
-                return list.clear()
+                val i = arguments[0]
+                val j = arguments[1]
+                if (i !is Int || j !is Int)
+                    throw LoxCallError("slice: parameters should be integers")
+                if (i < 0 || i >= list.size || j < 0 || j > list.size)
+                    throw LoxCallError("slice: parameters are not in valid range")
+                if (i >= j)
+                    throw LoxCallError("slice: parameters first index should be smaller than second index")
+
+                return LoxListInstance(list.slice(i until j))
             }
         }
+
+
         methods["len"] = object : LoxCallable {
             override var arity: Int = 0
 
-            override fun call(interpreter: Interpreter<Any?>, arguments: List<Any?>): Any? {
-                return list.size
-            }
+            override fun call(interpreter: Interpreter<Any?>, arguments: List<Any?>): Any? = list.size
         }
         methods["get_at"] = object : LoxCallable {
             override var arity: Int = 1
-
-            override fun call(interpreter: Interpreter<Any?>, arguments: List<Any?>): Any? {
-                return getAt(arguments[0])
-            }
+            override fun call(interpreter: Interpreter<Any?>, arguments: List<Any?>): Any? = getAt(arguments[0])
         }
         methods["set_at"] = object : LoxCallable {
             override var arity: Int = 2
 
-            override fun call(interpreter: Interpreter<Any?>, arguments: List<Any?>): Any? {
-                return setAt(arguments[0], arguments[1])
-            }
+            override fun call(interpreter: Interpreter<Any?>, arguments: List<Any?>): Any? =
+                setAt(arguments[0], arguments[1])
         }
     }
 
@@ -93,4 +111,6 @@ class LoxListInstance : LoxInstanceBase {
         list[index] = value
         return null
     }
+
+    override fun toString(): String = list.joinToString(",", "[", "]")
 }

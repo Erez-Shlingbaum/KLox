@@ -91,4 +91,25 @@ class ScriptsTest : LoxTest() {
             actual
         )
     }
+
+    @Test
+    fun testBuiltinClasses() {
+        val script = File("$resourceDir/builtin_classes.lox")
+        lox.execute(script.readText())
+
+        val source = outContent.toString()
+
+        val actual: MutableList<Int> = ArrayList()
+        for (line in source.lines().filter { it.isNotEmpty() })
+            actual += line.subSequence(1, line.length - 1).split(",").map { it.toInt() }
+
+        assertEquals(
+            listOf(
+                9, 8, 7, 6, 5, 4, 3, 2, 1,
+                1, 2, 3, 4, 5, 6, 7, 8, 9
+            ),
+            actual
+        )
+    }
+
 }
